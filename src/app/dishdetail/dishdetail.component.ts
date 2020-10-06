@@ -1,9 +1,12 @@
+import { DishFeedback } from './../shared/dishfeedback';
+import { Location } from '@angular/common';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Params } from '@angular/router';
+import { switchMap } from 'rxjs/operators';
+
 import { DishService } from './../services/dish.service';
 import { Dish } from './../shared/dish';
-import { Component, OnInit } from '@angular/core';
-import { Params, ActivatedRoute } from '@angular/router';
-import { Location } from '@angular/common';
-import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dishdetail',
@@ -11,16 +14,37 @@ import { switchMap } from 'rxjs/operators';
   styleUrls: ['./dishdetail.component.scss'],
 })
 export class DishdetailComponent implements OnInit {
+  dishForm: FormGroup;
+  dishFeedback: Comment;
   dish: Dish;
   dishIds: string[];
   prev: string;
   next: string;
+  @ViewChild('dishform') dishFormDirective;
+
+  formErrors = {
+    author: '',
+    comment: '',
+  };
+
+  validationMessages = {
+    author: {
+      required: 'Author name is required.',
+      minlength: 'Author name must be at least 2 characters long.',
+    },
+    comment: {
+      required: 'Comment is required.',
+    },
+  };
 
   constructor(
     private dishService: DishService,
     private route: ActivatedRoute,
-    private location: Location
-  ) {}
+    private location: Location,
+    private fb: FormBuilder
+  ) {
+    this.createForm();
+  }
 
   ngOnInit(): void {
     this.dishService
@@ -48,5 +72,61 @@ export class DishdetailComponent implements OnInit {
 
   goBack(): void {
     this.location.back();
+  }
+
+  createForm(): void {
+    this.dishForm = this.fb.group({
+      author: ['', [Validators.required, Validators.minLength(2)]],
+      rating: 0,
+      comment: '',
+    });
+
+    this.dishForm.valueChanges.subscribe((data) => this.onValueChanged(data));
+
+    this.onValueChanged();
+  }
+
+  onValueChanged(data?: any): any {
+    if (!this.dishForm) {
+      return;
+    }
+
+    const form = this.dishForm;
+
+    for (const field in this.formErrors) {
+      if (Object.prototype.hasOwnProperty.call(this.formErrors, field)) {
+        this.formErrors[field] = '';
+
+        const control = form.get(field);
+
+        if (control && control.dirty && !control.valid) {
+          const messages = this.validationMessages[field];
+
+          for (const key in control.errors) {
+            if (Object.prototype.hasOwnProperty.call(control.errors, key)) {
+              this.formErrors[field] += messages[key] + ' ';
+            }
+          }
+        }
+      }
+    }
+  }
+
+  onSubmit(): void {
+    this.dishFeedback = this.dishForm.value;
+    this.dish.comments = [
+      ...this.dish.comments,
+      {
+        ...this.dishForm.value,
+        date: new Date().toISOString().slice(0, 19).replace('T', ' '),
+      },
+    ];
+    this.dishForm.reset({
+      name: '',
+      rating: 0,
+      comment: '',
+    });
+
+    this.dishFormDirective.resetForm();
   }
 }
