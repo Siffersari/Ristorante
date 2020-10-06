@@ -1,4 +1,3 @@
-import { DishFeedback } from './../shared/dishfeedback';
 import { Location } from '@angular/common';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
