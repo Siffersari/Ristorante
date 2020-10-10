@@ -68,7 +68,7 @@
           (ngSubmit)="onSubmit()"
         >
           <p>
-            <mat-form-field>
+            <mat-form-field class="full-width">
               <input
                 matInput
                 formControlName="author"
@@ -95,7 +95,7 @@
             </td>
           </table>
           <p>
-            <mat-form-field>
+            <mat-form-field class="full-width">
               <textarea
                 matInput
                 formControlName="comment"
@@ -121,8 +121,13 @@
     </div>
   </div>
 
-  <div fxFlex [hidden]="dish">
+  <div fxFlex [hidden]="dish || errMess">
     <mat-spinner> </mat-spinner>
     <h4>Loading . . . Please Wait!</h4>
+  </div>
+
+  <div *ngIf="errMess">
+    <h2>Error</h2>
+    <h4>{{ errMess }}</h4>
   </div>
 </div>

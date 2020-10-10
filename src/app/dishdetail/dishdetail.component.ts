@@ -1,3 +1,4 @@
+import { Comment } from './../shared/comment';
 import { Location } from '@angular/common';
 import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -19,7 +20,9 @@ export class DishdetailComponent implements OnInit {
   dishIds: string[];
   prev: string;
   next: string;
+  errMess: string;
   @ViewChild('dishform') dishFormDirective;
+  dishcopy: Dish;
 
   formErrors = {
     author: '',
@@ -54,8 +57,9 @@ export class DishdetailComponent implements OnInit {
       .pipe(switchMap((params: Params) => this.dishService.getDish(params.id)))
       .subscribe((dish) => {
         this.dish = dish;
+        this.dishcopy = dish;
         this.setPrevNext(dish.id);
-      });
+      }, errMess => this.errMess = errMess as any);
   }
 
   setPrevNext(dishId: string): void {
@@ -77,8 +81,8 @@ export class DishdetailComponent implements OnInit {
   createForm(): void {
     this.dishForm = this.fb.group({
       author: ['', [Validators.required, Validators.minLength(2)]],
-      rating: 0,
-      comment: '',
+      rating: 5,
+      comment: ['', [Validators.required]],
     });
 
     this.dishForm.valueChanges.subscribe((data) => this.onValueChanged(data));
@@ -114,19 +118,19 @@ export class DishdetailComponent implements OnInit {
 
   onSubmit(): void {
     this.dishFeedback = this.dishForm.value;
-    this.dish.comments = [
-      ...this.dish.comments,
-      {
-        ...this.dishForm.value,
-        date: new Date().toISOString().slice(0, 19).replace('T', ' '),
-      },
-    ];
+    this.dishFeedback.date = new Date().toISOString();
+
+    this.dishcopy.comments.push(this.dishFeedback);
+    this.dishService.putDish(this.dishcopy).subscribe(dish => {
+      this.dish = dish; this.dishcopy = dish;
+    },
+    errmess => {this.dish = null; this.dishcopy = null; this.errMess = errmess as any; })
+    this.dishFormDirective.resetForm();
     this.dishForm.reset({
       name: '',
-      rating: 0,
+      rating: 5,
       comment: '',
     });
 
-    this.dishFormDirective.resetForm();
   }
 }
