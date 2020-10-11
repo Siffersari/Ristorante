@@ -4,6 +4,7 @@ import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
 import { switchMap } from 'rxjs/operators';
+import { style, animate, transition, trigger, state } from '@angular/animations';
 
 import { DishService } from './../services/dish.service';
 import { Dish } from './../shared/dish';
@@ -12,6 +13,19 @@ import { Dish } from './../shared/dish';
   selector: 'app-dishdetail',
   templateUrl: './dishdetail.component.html',
   styleUrls: ['./dishdetail.component.scss'],
+  animations: [
+    trigger('visibility', [
+      state('shown', style({
+        transform: 'scale(1.0)',
+        opacity: 1
+      })),
+      state('hidden', style({
+        transform: 'scale(0.5)',
+        opacity: 0
+      })),
+      transition('* => *', animate('0.5s ease-in-out'))
+    ])
+  ]
 })
 export class DishdetailComponent implements OnInit {
   dishForm: FormGroup;
@@ -23,6 +37,7 @@ export class DishdetailComponent implements OnInit {
   errMess: string;
   @ViewChild('dishform') dishFormDirective;
   dishcopy: Dish;
+  visibility = 'shown';
 
   formErrors = {
     author: '',
@@ -54,11 +69,14 @@ export class DishdetailComponent implements OnInit {
       .getDishIds()
       .subscribe((dishIds) => (this.dishIds = dishIds));
     this.route.params
-      .pipe(switchMap((params: Params) => this.dishService.getDish(params.id)))
+      .pipe(switchMap(
+        (params: Params) => { this.visibility = 'hidden';
+                              return  this.dishService.getDish(params.id); }))
       .subscribe((dish) => {
         this.dish = dish;
         this.dishcopy = dish;
         this.setPrevNext(dish.id);
+        this.visibility = 'shown';
       }, errMess => this.errMess = errMess as any);
   }
 
@@ -124,7 +142,7 @@ export class DishdetailComponent implements OnInit {
     this.dishService.putDish(this.dishcopy).subscribe(dish => {
       this.dish = dish; this.dishcopy = dish;
     },
-    errmess => {this.dish = null; this.dishcopy = null; this.errMess = errmess as any; })
+    errmess => {this.dish = null; this.dishcopy = null; this.errMess = errmess as any; });
     this.dishFormDirective.resetForm();
     this.dishForm.reset({
       name: '',
