@@ -24,6 +24,7 @@ import { AboutComponent } from './about/about.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ContactComponent } from './contact/contact.component';
+import { HighlightDirective } from './directives/highlight.directive';
 import { DishdetailComponent } from './dishdetail/dishdetail.component';
 import { FooterComponent } from './footer/footer.component';
 import { HeaderComponent } from './header/header.component';
@@ -31,11 +32,11 @@ import { HomeComponent } from './home/home.component';
 import { LoginComponent } from './login/login.component';
 import { MenuComponent } from './menu/menu.component';
 import { DishService } from './services/dish.service';
+import { FeedbackService } from './services/feedback.service';
 import { LeaderService } from './services/leader.service';
 import { ProcessHTTPMsgService } from './services/process-httpmsg.service';
 import { PromotionService } from './services/promotion.service';
 import { baseURL } from './shared/baseurl';
-import { HighlightDirective } from './directives/highlight.directive';
 
 @NgModule({
   declarations: [
@@ -78,6 +79,7 @@ import { HighlightDirective } from './directives/highlight.directive';
     LeaderService,
     { provide: 'BaseURL', useValue: baseURL },
     ProcessHTTPMsgService,
+    FeedbackService
   ],
   bootstrap: [AppComponent],
 })
