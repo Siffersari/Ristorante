@@ -1,8 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
-import { flyInOut } from '../animations/app.animation';
+import { flyInOut, visibility} from '../animations/app.animation';
+import { FeedbackService } from '../services/feedback.service';
 import { ContactType, Feedback } from '../shared/feedback';
+import { expand } from './../animations/app.animation';
 
 @Component({
   selector: 'app-contact',
@@ -13,12 +15,17 @@ import { ContactType, Feedback } from '../shared/feedback';
     style: 'display: block;'
   },
   animations: [
-    flyInOut()
+    flyInOut(),
+    visibility(),
+    expand()
   ]
 })
 export class ContactComponent implements OnInit {
   feedbackForm: FormGroup;
   feedback: Feedback;
+  feedbackResponse: Feedback;
+  errMess: string;
+  hideLoader = true;
   contactType = ContactType;
   @ViewChild('fform') feedbackFormDirective;
 
@@ -50,11 +57,12 @@ export class ContactComponent implements OnInit {
     },
   };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private feedbackService: FeedbackService) {
     this.createForm();
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+  }
 
   createForm(): void {
     this.feedbackForm = this.fb.group({
@@ -118,6 +126,16 @@ export class ContactComponent implements OnInit {
   onSubmit(): void {
     this.feedback = this.feedbackForm.value;
     console.log(this.feedback);
+    this.hideLoader = false;
+    this.feedbackService.submitFeedback(this.feedback).subscribe(feedback => {
+      this.feedbackResponse = feedback;
+      this.hideLoader = true;
+    }, errmess => {this.feedbackResponse = null; this.hideLoader = true;  this.errMess = errmess as any; });
+
+    setTimeout(() => {
+      this.feedback = null;
+      this.feedbackResponse = null;
+    }, 5000);
     this.feedbackForm.reset({
       firstname: '',
       lastname: '',
